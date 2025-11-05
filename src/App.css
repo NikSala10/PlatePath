@@ -1,0 +1,19 @@
+.intro {
+    display: flex;
+    margin: 2rem auto;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem;
+    width: 70%;
+    gap: 2rem; /* separa los elementos */
+}
+
+.tit {
+    font-size: 45px;
+    margin: 0;
+    padding: 0;
+}
+.descrip {
+    font-size: 18px;
+    width: 60%;
+}
