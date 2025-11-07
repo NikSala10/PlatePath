@@ -63,7 +63,7 @@ export const Home = () => {
 
   return (
     <div className="home-container">
-      <img src={Logo} alt="" style={{ width: "270px", display: "block"}} />
+      <img src={Logo} alt="" style={{ width: "270px", display: "block", margin: "0 auto", paddingTop: "2rem", marginBottom: "0"}} />
       <div className="intro">
         <div className="key-words">
           <h1 className="tit" style={{color: '#6455F6'}}>Inspiración</h1>
@@ -72,10 +72,10 @@ export const Home = () => {
           <p className="descrip">Planea tus comidas sin estrés y descubre menús adaptados a tu vida, todos los días.</p>
         </div>
         <div>
-          <img src={Galeria} alt="" style={{ width: "550px" }}  />
+          <img src={Galeria} alt="" style={{ width: "700px" }}  />
         </div>
       </div>
-      <img src={User} alt="" style={{width: "100%"}} />
+      <img src={User} alt="" style={{width: "100%", marginTop: "-11rem"}} />
 
       <h1>Encuesta Plate Path</h1>
 
