@@ -30,6 +30,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    margin-top: 9rem;
+    margin-bottom: 9rem;
 }
 .think {
     font-size: 25px;
@@ -41,7 +43,7 @@
 .call-to-action{
     color: #6455F6;
     font-size: 64px;
-    font-weight: bold;
+    font-weight: bolder;
     text-align: center;
     margin-bottom: 0;
 }
@@ -75,19 +77,33 @@
     text-align: center;
     color: #6455F6;
     font-weight: 500;
+    margin-bottom: 3rem;
 }
-.scale-1 {
+.scale-1, .scale-2, .scale-3, .scale-4 {
     margin-top: 7rem;
 }
 .label-likert {
     display: flex;
     align-items: center;
     justify-content: space-between; 
-    width: 31%;
+    width: 30%;
     margin: 0 auto; 
     padding-top: 0.8rem;
-    font-size: 20px;
+    font-size: 24px;
     color: #5F51F6;
+    text-align: center;
+    font-weight: bold;
+}
+.label-likert-diferente {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; 
+    width: 38%;
+    margin: 0 auto; 
+    padding-top: 0.8rem;
+    font-size: 24px;
+    color: #5F51F6;
+    text-align: center;
     font-weight: bold;
 }
 .btn-likert {
@@ -99,4 +115,55 @@
     background-color: #A4B8FF;
     padding: 0.8rem 1rem;
     border-radius: 50px;
+}
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    margin: 0 auto;
+    background-color: #5E50E0;
+}
+.personalizer {
+    font-weight: 400;
+    font-size: 32px;
+    margin: 0;
+    margin-bottom: 1rem;
+}
+.btn-susb {
+    background-color: #1CDC55;
+    color: white;
+    margin-top: 1rem;
+    border: none;
+    padding: 12px;
+    width: 200px;
+    height: 65px;
+    border-radius: 30px;
+    font-size: 20px;
+    cursor: pointer;
+}
+input[type="radio"] {
+  -webkit-appearance: none; /* Safari/Chrome */
+  -moz-appearance: none;    /* Firefox */
+  appearance: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid rgb(255, 255, 255);
+  border-radius: 50%;
+  background-color: white;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+}
+
+input[type="radio"]:checked::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.8rem;
+  height: 0.8rem;
+  background: #1CDC55; /* color cuando está seleccionado */
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
 }
