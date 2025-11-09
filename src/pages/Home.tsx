@@ -11,10 +11,27 @@ import chica from "../../public/assets/Group 13082.png"
 import pasoApaso from "../../public/assets/Group 13083.png"
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
+import { emojis } from "../data/likertIcons";
 // import footer  from "../../public/assets/Group 13084.png"
 
 export const Home = () => {
 
+  const [scale1Selection, setScale1Selection] = useState(""); // Emoji seleccionado
+  
+  const handleScale1 = async (value: string) => {
+    setScale1Selection(value);
+
+    try {
+      await addDoc(collection(db, "encuestas"), {
+        pregunta: "¿Sueles terminar cocinando siempre lo mismo porque planificar te resulta difícil?",
+        respuesta: value,
+        fecha: new Date(),
+      });
+      console.log("Respuesta enviada:", value);
+    } catch (error) {
+      console.error("Error enviando la respuesta:", error);
+    }
+  };
   const [form, setForm] = useState({
     nombre: "",
     apellido: "",
@@ -112,6 +129,23 @@ export const Home = () => {
     fontSize: "16px",
     cursor: "pointer",
   },
+  likertRow: {
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: "1rem",
+      marginTop: "0.5rem",
+      margin: "0 auto",
+      width: "500px"
+    },
+ 
+    labelRow: {
+      display: "flex",
+      justifyContent: "space-between",
+      marginTop: "0.5rem",
+      padding: "0 1rem",
+      fontWeight: "bold",
+    }
 };
 
   return (
@@ -129,7 +163,25 @@ export const Home = () => {
         </div>
       </div>
         <img src={User} alt="" style={{width: "100%", marginTop: "-11rem"}} />
-        <p className="questions">¿Te sientes identificado con la situación de Andrés?</p>
+        <div className="scale-1">
+          <p className="questions">¿Te sientes identificado con la situación de Andrés?</p>
+          <div style={styles.likertRow} className="div-icons">
+            {Object.values(emojis).map((e, i) => (
+              <button
+                key={i}
+                type="button"
+                className="btn-likert"
+                onClick={() => handleScale1(i.toString())} 
+              >
+                {e}
+              </button>
+            ))}
+          </div>
+          <div className="label-likert">
+            <span>Nada</span>
+            <span>Muy</span>
+          </div>
+        </div>
       <div>
         <div className="section-2">
           <h3 className="andres-work">Andrés, entre trabajo, universidad y familia,<br /> <b>nunca tiene tiempo</b> para decidir qué cocinar. </h3>
@@ -140,7 +192,7 @@ export const Home = () => {
           <h3 className="think">Piensa mientras el estrés sube</h3>
         </div>
       </div>
-      <div className="scale-1">
+      <div className="scale-2">
         <p className="questions">¿Sueles terminar cocinando siempre lo mismo <br /> porque planificar te resulta difícil?</p>
       </div>
       <img src={boy} style={ { width: "100%", marginTop: "-3rem" }} alt="" />

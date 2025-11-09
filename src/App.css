@@ -76,3 +76,27 @@
     color: #6455F6;
     font-weight: 500;
 }
+.scale-1 {
+    margin-top: 7rem;
+}
+.label-likert {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; 
+    width: 31%;
+    margin: 0 auto; 
+    padding-top: 0.8rem;
+    font-size: 20px;
+    color: #5F51F6;
+    font-weight: bold;
+}
+.btn-likert {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+}
+.div-icons {
+    background-color: #A4B8FF;
+    padding: 0.8rem 1rem;
+    border-radius: 50px;
+}
