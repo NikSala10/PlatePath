@@ -375,7 +375,7 @@ useEffect(() => {
           </button>
         </form>
     </div>)}
-    {showSecondForm && (<div style={styles.container} className="second-form fade-in">
+    {showSecondForm && (<div style={styles.container} className="second-form">
         <form style={styles.form} onSubmit={sendSecondForm}>
         <h2 className="personalizer">¡Queremos que tu asesoría <br /> sea más personalizada!</h2>
             <div style={styles.inputGroup}>
