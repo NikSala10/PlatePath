@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../services/firebaseConfig"
 import Logo from "../../public/assets/Logo.svg";
@@ -15,75 +15,106 @@ import { emojis } from "../data/likertIcons";
 
 export const Home = () => {
 
-  const [scale1Selection, setScale1Selection] = useState(""); // Emoji seleccionado
-  
-  const handleScale1 = async (value: string) => {
-    setScale1Selection(value);
+ // Estado para la primera encuesta (las caritas)
+  const [scaleSelections, setScaleSelections] = useState<{ [key: string]: string }>({});
+  // Estado para mostrar el segundo formulario
+  const [showSecondForm, setShowSecondForm] = useState(false);
+  const [submitted, setSubmitted] = useState<{ [key: string]: boolean }>({});
 
-    try {
-      await addDoc(collection(db, "encuestas"), {
-        pregunta: "¿Sueles terminar cocinando siempre lo mismo porque planificar te resulta difícil?",
-        respuesta: value,
-        fecha: new Date(),
-      });
-      console.log("Respuesta enviada:", value);
-    } catch (error) {
-      console.error("Error enviando la respuesta:", error);
-    }
-  };
+  
+useEffect(() => {
+  const elements = document.querySelectorAll(".fade-in");
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("show");
+      }
+    });
+  }, { threshold: 0.2 });
+
+  elements.forEach(el => observer.observe(el));
+
+  return () => observer.disconnect();
+}, []);
+
+  // Estado del formulario
   const [form, setForm] = useState({
     nombre: "",
     apellido: "",
     correo: "",
     telefono: "",
-    p1: "",
-    p2: "",
-    p3: "",
-    p4: ""
+    nivelCocina: "",
+    horasPreparación: ""
   });
 
-  const handleChange = (e:  React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  // Manejo de inputs
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({
       ...form,
       [e.target.name]: e.target.value
     });
   };
 
-  const sendForm = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  // Guardar la respuesta de cada carita
+  const handleScale = async (question: string, value: string) => {
+    // Evitar que el usuario cambie la respuesta
+    if (scaleSelections[question]) return;
+
+    // Actualizar estado local
+    setScaleSelections(prev => ({ ...prev, [question]: value }));
 
     try {
       await addDoc(collection(db, "encuestas"), {
-        nombre: form.nombre,
-        apellido: form.apellido,
-        correo: form.correo,
-        telefono: form.telefono,
-        respuestas: {
-          p1: form.p1,
-          p2: form.p2,
-          p3: form.p3,
-          p4: form.p4
-        },
-        fecha: new Date()
+        pregunta: question,
+        respuesta: value,
+        fecha: new Date(),
       });
-
-      alert("Encuesta enviada con éxito");
-      setForm({
-        nombre: "",
-        apellido: "",
-        correo: "",
-        telefono: "",
-        p1: "",
-        p2: "",
-        p3: "",
-        p4: ""
-      });
-
+      console.log(`Respuesta de "${question}" enviada:`, value);
+       setSubmitted(prev => ({ ...prev, [question]: true }));
     } catch (error) {
-      console.log(error);
+      console.error("Error enviando la respuesta:", error);
+    }
+  };
+
+  // Enviar el primer formulario y mostrar el segundo
+ const sendForm = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+
+  // Guardar respuestas del primer formulario en Firebase
+  try {
+    await addDoc(collection(db, "encuestas"), {
+      ...form, // Información personal ya completada
+      fecha: new Date(),
+      respuestasPrevias: scaleSelections, // Respuestas de las caritas
+      etapa: "primer_formulario"
+    });
+    console.log("Primer formulario guardado con éxito");
+  } catch (error) {
+    console.error("Error guardando el primer formulario:", error);
+  }
+
+  // Mostrar el segundo formulario
+  setShowSecondForm(true);
+};
+
+  // Enviar el segundo formulario a Firebase
+  const sendSecondForm = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      await addDoc(collection(db, "encuestas"), {
+        ...form,
+        fecha: new Date(),
+        respuestasPrevias: scaleSelections,
+        completada: true
+      });
+      alert("Encuesta completa enviada con éxito");
+    } catch (error) {
+      console.error(error);
       alert("Error al enviar");
     }
   };
+
 
   const styles: { [key: string]: React.CSSProperties } = {
   container: {
@@ -94,7 +125,7 @@ export const Home = () => {
     justifyContent: "center",
     borderRadius: "25px",
     width: "600px",
-    marginBottom: "8rem",
+    marginBottom: "12rem",
     margin: "2rem auto",
   },
   form: {
@@ -151,27 +182,28 @@ export const Home = () => {
   return (
     <div className="home-container">
       <img src={Logo} alt="" style={{ width: "270px", display: "block", margin: "0 auto", paddingTop: "2rem", marginBottom: "0"}} />
-      <div className="intro">
-        <div className="key-words">
+      <div className="intro fade-in">
+        <div className="key-words fade-in">
           <h1 className="tit" style={{color: '#6455F6'}}>Inspiración</h1>
           <h1 className="tit" style={{color: ""}}>Sabor</h1>
           <h1 className="tit" style={{color:'#1CDC55'}}>Bienestar</h1>
-          <p className="descrip">Planea tus comidas sin estrés y descubre menús adaptados a tu vida, todos los días.</p>
+          <p className="descrip fade-in">Planea tus comidas sin estrés y descubre menús adaptados a tu vida, todos los días.</p>
         </div>
         <div>
-          <img src={Galeria} alt="" style={{ width: "700px" }}  />
+          <img className="n fade-in" src={Galeria} alt="" style={{ width: "700px" }}  />
         </div>
       </div>
-        <img src={User} alt="" style={{width: "100%", marginTop: "-11rem"}} />
-        <div className="scale-1">
-          <p className="questions">¿Te sientes identificado con la situación de Andrés?</p>
-          <div style={styles.likertRow} className="div-icons">
+        <img className="n fade-in" src={User} alt="" style={{width: "100%", marginTop: "-11rem"}} />
+        <div className="scale-1 fade-in">
+          <p className="questions fade-in">¿Te sientes identificado con la situación de Andrés?</p>
+          <div style={styles.likertRow} className="div-icons fade-in">
             {Object.values(emojis).map((e, i) => (
               <button
                 key={i}
+                disabled={!!scaleSelections["p1"]} // bloquea si ya respondió
                 type="button"
                 className="btn-likert"
-                onClick={() => handleScale1(i.toString())} 
+                onClick={() => handleScale("p1", i.toString())}
               >
                 {e}
               </button>
@@ -181,26 +213,32 @@ export const Home = () => {
             <span>Nada</span>
             <span>Muy</span>
           </div>
+          {submitted["p1"] && (
+            <p style={{ textAlign: "center", marginTop: "1rem", fontWeight: "bold", color: "#6455F6" }}>
+              ¡Gracias por responder!
+            </p>
+          )}
         </div>
       <div>
-        <div className="section-2">
-          <h3 className="andres-work">Andrés, entre trabajo, universidad y familia,<br /> <b>nunca tiene tiempo</b> para decidir qué cocinar. </h3>
+        <div className="section-2 fade-in">
+          <h3 className="andres-work fade-in">Andrés, entre trabajo, universidad y familia,<br /> <b>nunca tiene tiempo</b> para decidir qué cocinar. </h3>
           <div><svg width="77" height="77" viewBox="0 0 77 77" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M77 38.5C77 57.1051 59.7616 72.1875 38.5 72.1875C34.6866 72.196 30.8888 71.7008 27.2051 70.7149C24.3946 72.1394 17.941 74.8729 7.084 76.6535C6.1215 76.8075 5.39 75.8065 5.77019 74.9114C7.47381 70.8881 9.01381 65.527 9.47581 60.6375C3.5805 54.7181 0 46.97 0 38.5C0 19.8949 17.2384 4.8125 38.5 4.8125C59.7616 4.8125 77 19.8949 77 38.5ZM34.6211 32.5614C34.3036 32.0882 33.9374 31.6495 33.5287 31.2524C32.8829 30.5931 32.1167 30.0638 31.2716 29.6931L31.2331 29.6739C30.0927 29.1469 28.8512 28.8743 27.5949 28.875C22.9845 28.875 19.25 32.4651 19.25 36.8974C19.25 41.3249 22.9845 44.9151 27.5949 44.9151C29.2456 44.9151 30.7808 44.4579 32.0753 43.6638C31.416 45.5359 30.1984 47.5331 28.1772 49.5351C27.9868 49.7209 27.8365 49.9437 27.7355 50.1899C27.6344 50.436 27.5849 50.7002 27.5899 50.9662C27.5948 51.2322 27.6542 51.4944 27.7643 51.7366C27.8744 51.9788 28.0329 52.1958 28.2301 52.3744C29.0627 53.1444 30.3813 53.1204 31.185 52.3263C37.6049 45.9305 37.7781 39.0534 35.7136 34.4912C35.4093 33.8173 35.0436 33.1729 34.6211 32.5662V32.5614ZM52.9375 43.6638C52.283 45.5359 51.0606 47.5331 49.0394 49.5351C48.8493 49.7212 48.6993 49.9443 48.5987 50.1906C48.4981 50.4369 48.449 50.7012 48.4544 50.9672C48.4598 51.2332 48.5196 51.4953 48.6302 51.7373C48.7407 51.9793 48.8996 52.1962 49.0971 52.3744C49.9249 53.1444 51.2435 53.1204 52.0472 52.3263C58.4671 45.9305 58.6403 39.0534 56.5806 34.4912C56.2748 33.8171 55.9075 33.1727 55.4833 32.5662C55.166 32.0913 54.7999 31.651 54.3909 31.2524C53.7451 30.5931 52.9789 30.0638 52.1338 29.6931L52.0953 29.6739C50.9563 29.1476 49.7166 28.875 48.4619 28.875C43.8563 28.875 40.117 32.4651 40.117 36.8974C40.117 41.3249 43.8563 44.9151 48.4619 44.9151C50.1126 44.9151 51.6478 44.4579 52.9423 43.6638H52.9375Z" fill="#6455F6"/>
           </svg></div>
-          <h1 className="question-two">“¿Otra vez arroz con pollo y pasta?”</h1>
-          <h3 className="think">Piensa mientras el estrés sube</h3>
+          <h1 className="question-two fade-in">“¿Otra vez arroz con pollo y pasta?”</h1>
+          <h3 className="think fade-in">Piensa mientras el estrés sube</h3>
         </div>
       </div>
-      <div className="scale-2">
-        <p className="questions">¿Sueles terminar cocinando siempre lo mismo <br /> porque planificar te resulta difícil?</p>
-        <div style={styles.likertRow} className="div-icons">
+      <div className="scale-2 fade-in">
+        <p className="questions fade-in">¿Sueles terminar cocinando siempre lo mismo <br /> porque planificar te resulta difícil?</p>
+        <div style={styles.likertRow} className="div-icons fade-in">
             {Object.values(emojis).map((e, i) => (
               <button
                 key={i}
+                disabled={!!scaleSelections["p2"]} // bloquea si ya respondió
                 type="button"
                 className="btn-likert"
-                onClick={() => handleScale1(i.toString())} 
+                onClick={() => handleScale("p2", i.toString())}
               >
                 {e}
               </button>
@@ -210,6 +248,11 @@ export const Home = () => {
             <span>Siempre</span>
             <span>Nunca</span>
           </div>
+          {submitted["p2"] && (
+            <p style={{ textAlign: "center", marginTop: "1rem", fontWeight: "bold", color: "#6455F6" }}>
+              ¡Gracias por responder!
+            </p>
+          )}
       </div>
       <img src={boy} style={ { width: "100%", marginTop: "7rem" }} alt="" />
 
@@ -218,18 +261,19 @@ export const Home = () => {
         justifyContent: "center",
         alignItems: "center"
       }}>
-        <img src={capsulas} style={{ width: "70%", marginTop: "-8rem", marginBottom: "5rem" }} alt="" />
+        <img className="n fade-in" src={capsulas} style={{ width: "70%", marginTop: "-8rem", marginBottom: "5rem" }} alt="" />
       </div>
       <div>
-      <div className="scale-3">
-        <p className="questions">¿Qué tan estresante te resulta <br /> planificar tus comidas diarias?</p>
-        <div style={styles.likertRow} className="div-icons">
+      <div className="scale-3 fade-in">
+        <p className="questions fade-in">¿Qué tan estresante te resulta <br /> planificar tus comidas diarias?</p>
+        <div style={styles.likertRow} className="div-icons fade-in">
             {Object.values(emojis).map((e, i) => (
               <button
                 key={i}
+                disabled={!!scaleSelections["p3"]} // bloquea si ya respondió
                 type="button"
                 className="btn-likert"
-                onClick={() => handleScale1(i.toString())} 
+                onClick={() => handleScale("p3", i.toString())}
               >
                 {e}
               </button>
@@ -239,35 +283,46 @@ export const Home = () => {
             <span>Muy</span>
             <span>Nada</span>
           </div>
+          {submitted["p3"] && (
+            <p style={{ textAlign: "center", marginTop: "1rem", fontWeight: "bold", color: "#6455F6" }}>
+              ¡Gracias por responder!
+            </p>
+          )}
       </div>
       </div>
-      <img src={andres} style={ { width: "100%", marginTop: "9rem", marginBottom: "5rem" }}alt=""  />
+      <img className="n fade-in" src={andres} style={ { width: "100%", marginTop: "9rem", marginBottom: "5rem" }}alt=""  />
       <div>
-      <div className="scale-4">
-        <p className="questions">¿Te gustaría contar con ayuda para planificar <br /> tus comidas de manera fácil y sin presión?</p>
-        <div style={styles.likertRow} className="div-icons">
+      <div className="scale-4 fade-in">
+        <p className="questions fade-in">¿Te gustaría contar con ayuda para planificar <br /> tus comidas de manera fácil y sin presión?</p>
+        <div style={styles.likertRow} className="div-icons fade-in">
             {Object.values(emojis).map((e, i) => (
               <button
                 key={i}
+                disabled={!!scaleSelections["p4"]}
                 type="button"
                 className="btn-likert"
-                onClick={() => handleScale1(i.toString())} 
+                onClick={() => handleScale("p4", i.toString())}
               >
                 {e}
               </button>
             ))}
           </div>
-          <div className="label-likert-diferente">
+          <div className="label-likert-diferente ">
             <span>No lo <br /> necesito</span>
             <span>Lo encesito <br /> urgente</span>
           </div>
+          {submitted["p4"] && (
+            <p style={{ textAlign: "center", marginTop: "1rem", fontWeight: "bold", color: "#6455F6" }}>
+              ¡Gracias por responder!
+            </p>
+          )}
       </div>
         <div style={{
           display: "flex",
           justifyContent: "flex-end"
         }}>
           
-          <img src={chica} style={{ width: "90%", marginTop: "11rem", marginBottom: "10rem"}} alt="" />
+          <img className="n fade-in" src={chica} style={{ width: "90%", marginTop: "11rem", marginBottom: "10rem"}} alt="" />
         </div>
 
       </div>
@@ -276,13 +331,14 @@ export const Home = () => {
         justifyContent: "center",
         alignItems: "center"
       }}>
-        <img src={pasoApaso} style={ { width: "70%", marginBottom: "7rem"}} alt="" />
+        <img className="n fade-in" src={pasoApaso} style={ { width: "70%", marginBottom: "7rem"}} alt="" />
       </div>
 
-      <h1 className="call-to-action">SUSCRÍBETE</h1>
-      <h2 className="rutin">¡y olvídate de la rutina en la cocina!</h2>
-      <div style={styles.container}>
-        <form style={styles.form} onSubmit={sendForm}>
+      <h1 className="call-to-action fade-in">SUSCRÍBETE</h1>
+      <h2 className="rutin fade-in">¡y olvídate de la rutina en la cocina!</h2>
+       {!showSecondForm && (<div style={styles.container} className="n fade-in">
+         
+          <form style={styles.form} onSubmit={sendForm}>
           <div style={styles.row}>
             <div style={styles.inputGroup}>
               <label>Nombre</label>
@@ -318,13 +374,13 @@ export const Home = () => {
             Siguiente
           </button>
         </form>
-    </div>
-    <div style={styles.container} className="second-form">
-        <form style={styles.form} onSubmit={sendForm}>
-            <h2 className="personalizer">¡Queremos que tu asesoría <br /> sea más personalizada!</h2>
+    </div>)}
+    {showSecondForm && (<div style={styles.container} className="second-form fade-in">
+        <form style={styles.form} onSubmit={sendSecondForm}>
+        <h2 className="personalizer">¡Queremos que tu asesoría <br /> sea más personalizada!</h2>
             <div style={styles.inputGroup}>
               <label style={{marginBottom:"1rem", fontSize:"19px"}}>¿Cuántas horas le gustaría invertir en la preparación?</label>
-              <input className="input-rounded" name="nombre" type="number" value={form.nombre} onChange={handleChange} required style={{width: "60%"}} />
+              <input className="input-rounded" name="horasPreparación" type="number" value={form.horasPreparación} onChange={handleChange} required style={{width: "60%"}} />
             </div>
             <div style={styles.inputGroup}>
               <label style={{marginBottom:"1rem", fontSize:"19px", marginTop:"2rem"}}>¿Cómo consideras tu nivel de cocina?</label>
@@ -333,9 +389,9 @@ export const Home = () => {
                 <label style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                   <input 
                     type="radio" 
-                    name="cocina" 
-                    value="1" 
-                    checked={form.cocina === "1"} 
+                    name="nivelCocina" 
+                    value="novato" 
+                    checked={form.nivelCocina === "novato"} 
                     onChange={handleChange} 
                     style={{ width: "1.5rem", height: "1.5rem", borderRadius: "50%" }} 
                   />
@@ -346,9 +402,9 @@ export const Home = () => {
                 <label style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                   <input 
                     type="radio" 
-                    name="cocina" 
-                    value="2" 
-                    checked={form.cocina === "2"} 
+                    name="nivelCocina" 
+                    value="basico" 
+                    checked={form.nivelCocina === "basico"} 
                     onChange={handleChange} 
                     style={{ width: "1.5rem", height: "1.5rem", borderRadius: "50%" }} 
                   />
@@ -359,9 +415,9 @@ export const Home = () => {
                 <label style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                   <input 
                     type="radio" 
-                    name="cocina" 
-                    value="3" 
-                    checked={form.cocina === "3"} 
+                    name="nivelCocina" 
+                    value="intermedio" 
+                    checked={form.nivelCocina === "intermedio"} 
                     onChange={handleChange} 
                     style={{ width: "1.5rem", height: "1.5rem", borderRadius: "50%" }} 
                   />
@@ -372,9 +428,9 @@ export const Home = () => {
                 <label style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                   <input 
                     type="radio" 
-                    name="cocina" 
-                    value="4" 
-                    checked={form.cocina === "4"} 
+                    name="nivelCocina" 
+                    value="avanzado" 
+                    checked={form.nivelCocina === "avanzado"} 
                     onChange={handleChange} 
                     style={{ width: "1.5rem", height: "1.5rem", borderRadius: "50%" }} 
                   />
@@ -386,7 +442,7 @@ export const Home = () => {
             Suscribir
           </button>
         </form>
-    </div>
+    </div>)}
       <div className="footer">
         <svg width="522" height="133" viewBox="0 0 522 133" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M0 2.25674H57.2141C83.0007 2.25674 94.927 22.7286 94.927 43.6841C94.927 65.4456 82.1949 84.6279 57.2141 84.6279H37.0683V121.058H0V2.25674ZM37.0683 30.6272V56.2574H44.8043C53.0238 56.2574 58.0199 53.3559 58.0199 43.6841C58.0199 34.0123 53.0238 30.6272 44.8043 30.6272H37.0683Z" fill="#FFF9EB"/>

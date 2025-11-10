@@ -167,3 +167,18 @@ input[type="radio"]:checked::after {
   border-radius: 50%;
   transform: translate(-50%, -50%);
 }
+.btn-likert:hover {
+  transform: scale(1.2);
+  transition: 0.2s;
+}
+/* Animación de aparecer */
+.fade-in {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 1s ease-out, transform 1s ease-out;
+}
+
+.fade-in.show {
+  opacity: 1;
+  transform: translateY(0);
+}
